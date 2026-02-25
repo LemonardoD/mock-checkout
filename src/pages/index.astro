@@ -49,14 +49,26 @@
           required
         />
 
-        <button type='submit'>Purchase</button>
+        <button
+          type='submit'
+          id='submitBtn'
+          >Purchase</button
+        >
       </form>
-      <pre id='result'></pre>
+      <div
+        id='successMessage'
+        class='success-message'
+        style='display: none;'
+      >
+        Purchase successful!
+      </div>
     </main>
   </body>
 </html>
 
 <script>
+  import { mockCheckoutApi } from "../api";
+
   const { generatePassword, getSubscriptionType, getAmountUSD, addMonths } = {
     generatePassword: (length = 12) => {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -66,15 +78,15 @@
       }
       return password;
     },
-    getSubscriptionType: (months: number) => {
+    getSubscriptionType: (months: number): "monthly" | "quarterly" | "yearly" => {
       if (months === 1) return "monthly";
       if (months === 3) return "quarterly";
       return "yearly";
     },
     getAmountUSD: (months: number) => {
-      if (months === 1) return 30;
-      if (months === 3) return 50;
-      return 100;
+      if (months === 1) return "30";
+      if (months === 3) return "50";
+      return "100";
     },
     addMonths: (months: number) => {
       const now = new Date();
@@ -84,26 +96,7 @@
     }
   };
 
-  function submitPurchase(formData: { duration: string; username: string; email: string }) {
-    const months = parseInt(formData.duration);
-
-    const purchase = {
-      subscriptionId: Math.floor(Math.random() * 1000000),
-      subscriptionType: "public",
-      subscriptionPeriod: getSubscriptionType(months),
-      subscriptionEndDate: addMonths(months).toISOString(),
-      email: formData.email,
-      password: generatePassword(12),
-      profileUsername: formData.username,
-      amountUDS: getAmountUSD(months),
-      amount: getAmountUSD(months),
-      currency: "USD"
-    };
-
-    return purchase;
-  }
-
-  document.getElementById("purchaseForm")?.addEventListener("submit", (e) => {
+  document.getElementById("purchaseForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
@@ -112,8 +105,36 @@
       username: formData.get("username") as string,
       email: formData.get("email") as string
     };
-    const result = submitPurchase(data);
-    document.getElementById("result")!.textContent = JSON.stringify(result, null, 2);
+
+    const btn = document.getElementById("submitBtn") as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = "Processing...";
+
+    try {
+      const months = parseInt(data.duration);
+
+      const purchase = {
+        subscriptionId: String(Math.floor(Math.random() * 1000000)),
+        subscriptionType: "public" as const,
+        subscriptionStatus: "active" as const,
+        subscriptionPeriod: getSubscriptionType(months),
+        subscriptionEndDate: addMonths(months).toISOString(),
+        email: data.email,
+        password: generatePassword(12),
+        profileUsername: data.username,
+        amountUSD: getAmountUSD(months),
+        amount: getAmountUSD(months),
+        currency: "USD"
+      };
+
+      await mockCheckoutApi.submitPurchase(purchase);
+      form.style.display = "none";
+      document.getElementById("successMessage")!.style.display = "block";
+    } catch (error) {
+      alert("Purchase failed. Please try again.");
+      btn.disabled = false;
+      btn.textContent = "Purchase";
+    }
   });
 </script>
 
@@ -170,11 +191,12 @@
     background-color: #0052a3;
   }
 
-  pre {
-    background: #f5f5f5;
+  .success-message {
+    background: #d4edda;
+    color: #155724;
     padding: 1rem;
     border-radius: 4px;
-    overflow-x: auto;
+    text-align: center;
     margin-top: 1rem;
   }
 </style>
