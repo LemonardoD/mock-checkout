@@ -1,86 +1,180 @@
----
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <link
+      rel='icon'
+      type='image/svg+xml'
+      href='/favicon.svg'
+    />
+    <link
+      rel='icon'
+      href='/favicon.ico'
+    />
+    <meta
+      name='viewport'
+      content='width=device-width'
+    />
+    <meta
+      name='generator'
+      content={Astro.generator}
+    />
+    <title>Purchase</title>
+  </head>
+  <body>
+    <main>
+      <form id='purchaseForm'>
+        <label for='duration'>Duration</label>
+        <select
+          id='duration'
+          name='duration'
+        >
+          <option value='1'>1 month</option>
+          <option value='3'>3 months</option>
+          <option value='12'>12 months</option>
+        </select>
 
----
+        <label for='username'>Username</label>
+        <input
+          type='text'
+          id='username'
+          name='username'
+          required
+        />
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Purchase</title>
-	</head>
-	<body>
-		<main>
-			<form>
-				<label for="duration">Duration</label>
-				<select id="duration" name="duration">
-					<option value="1">1 month</option>
-					<option value="3">3 months</option>
-					<option value="12">12 months</option>
-				</select>
+        <label for='email'>Email</label>
+        <input
+          type='email'
+          id='email'
+          name='email'
+          required
+        />
 
-				<label for="username">Username</label>
-				<input type="text" id="username" name="username" required />
-
-				<label for="email">Email</label>
-				<input type="email" id="email" name="email" required />
-
-				<button type="submit">Purchase</button>
-			</form>
-		</main>
-	</body>
+        <button type='submit'>Purchase</button>
+      </form>
+      <pre id='result'></pre>
+    </main>
+  </body>
 </html>
 
+<script>
+  const { generatePassword, getSubscriptionType, getAmountUSD, addMonths } = {
+    generatePassword: (length = 12) => {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+      let password = "";
+      for (let i = 0; i < length; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return password;
+    },
+    getSubscriptionType: (months: number) => {
+      if (months === 1) return "monthly";
+      if (months === 3) return "quarterly";
+      return "yearly";
+    },
+    getAmountUSD: (months: number) => {
+      if (months === 1) return 30;
+      if (months === 3) return 50;
+      return 100;
+    },
+    addMonths: (months: number) => {
+      const now = new Date();
+
+      now.setMonth(now.getMonth() + months);
+      return now;
+    }
+  };
+
+  function submitPurchase(formData: { duration: string; username: string; email: string }) {
+    const months = parseInt(formData.duration);
+
+    const purchase = {
+      subscriptionId: Math.floor(Math.random() * 1000000),
+      subscriptionType: "public",
+      subscriptionPeriod: getSubscriptionType(months),
+      subscriptionEndDate: addMonths(months).toISOString(),
+      email: formData.email,
+      password: generatePassword(12),
+      profileUsername: formData.username,
+      amountUDS: getAmountUSD(months),
+      amount: getAmountUSD(months),
+      currency: "USD"
+    };
+
+    return purchase;
+  }
+
+  document.getElementById("purchaseForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const data = {
+      duration: formData.get("duration") as string,
+      username: formData.get("username") as string,
+      email: formData.get("email") as string
+    };
+    const result = submitPurchase(data);
+    document.getElementById("result")!.textContent = JSON.stringify(result, null, 2);
+  });
+</script>
+
 <style>
-	* {
-		box-sizing: border-box;
-	}
+  * {
+    box-sizing: border-box;
+  }
 
-	body {
-		margin: 0;
-		font-family: system-ui, sans-serif;
-		min-height: 100vh;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-	main {
-		width: 100%;
-		max-width: 400px;
-		padding: 2rem;
-	}
+  main {
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+  }
 
-	form {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
 
-	label {
-		font-weight: 500;
-		margin-bottom: 0.25rem;
-	}
+  label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
 
-	select, input, button {
-		padding: 0.75rem;
-		font-size: 1rem;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-	}
+  select,
+  input,
+  button {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
 
-	button {
-		background-color: #0066cc;
-		color: white;
-		border: none;
-		cursor: pointer;
-		font-weight: 600;
-		margin-top: 0.5rem;
-	}
+  button {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
 
-	button:hover {
-		background-color: #0052a3;
-	}
+  button:hover {
+    background-color: #0052a3;
+  }
+
+  pre {
+    background: #f5f5f5;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-top: 1rem;
+  }
 </style>
