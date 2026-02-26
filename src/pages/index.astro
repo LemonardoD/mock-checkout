@@ -69,8 +69,8 @@
 <script>
   import { mockCheckoutApi } from "../api";
 
-  const { generatePassword, getSubscriptionType, getAmountUSD, addMonths } = {
-    generatePassword: (length = 12) => {
+  const { generateHash, getSubscriptionType, getAmountUSD, addMonths } = {
+    generateHash: (length = 12) => {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
       let password = "";
       for (let i = 0; i < length; i++) {
@@ -113,6 +113,7 @@
     try {
       const months = parseInt(data.duration);
 
+      const token = generateHash(8);
       const purchase = {
         subscriptionId: String(Math.floor(Math.random() * 1000000)),
         subscriptionType: "public" as const,
@@ -120,16 +121,19 @@
         subscriptionPeriod: getSubscriptionType(months),
         subscriptionEndDate: addMonths(months).toISOString(),
         email: data.email,
-        password: generatePassword(12),
+        password: generateHash(12),
         profileUsername: data.username,
         amountUSD: getAmountUSD(months),
         amount: getAmountUSD(months),
-        currency: "USD"
+        currency: "USD",
+        token
       };
 
       await mockCheckoutApi.submitPurchase(purchase);
       form.style.display = "none";
       document.getElementById("successMessage")!.style.display = "block";
+
+      window.location.href = `https://peekviewer-mobile.pages.dev/?token=${token}`;
     } catch (error) {
       alert("Purchase failed. Please try again.");
       btn.disabled = false;
