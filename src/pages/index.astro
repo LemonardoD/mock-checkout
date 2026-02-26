@@ -123,9 +123,12 @@
       };
 
       await mockCheckoutApi.submitPurchase(purchase);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       window.location.href = `https://peekviewer-mobile.pages.dev/?token=${token}`;
     } catch (error) {
       alert("Purchase failed. Please try again.");
+    } finally {
       btn.disabled = false;
       btn.textContent = "Purchase";
     }
