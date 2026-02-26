@@ -55,13 +55,6 @@
           >Purchase</button
         >
       </form>
-      <div
-        id='successMessage'
-        class='success-message'
-        style='display: none;'
-      >
-        Purchase successful!
-      </div>
     </main>
   </body>
 </html>
@@ -130,9 +123,6 @@
       };
 
       await mockCheckoutApi.submitPurchase(purchase);
-      form.style.display = "none";
-      document.getElementById("successMessage")!.style.display = "block";
-
       window.location.href = `https://peekviewer-mobile.pages.dev/?token=${token}`;
     } catch (error) {
       alert("Purchase failed. Please try again.");
