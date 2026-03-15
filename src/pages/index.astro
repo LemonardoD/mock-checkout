@@ -33,6 +33,14 @@
           <option value='12'>12 months</option>
         </select>
 
+        <select
+          id='type'
+          name='type'
+        >
+          <option value='public'>Public</option>
+          <option value='private'>Private</option>
+        </select>
+
         <label for='username'>Username</label>
         <input
           type='text'
@@ -96,7 +104,8 @@
     const data = {
       duration: formData.get("duration") as string,
       username: formData.get("username") as string,
-      email: formData.get("email") as string
+      email: formData.get("email") as string,
+      type: formData.get("type") as "public" | "private"
     };
 
     const btn = document.getElementById("submitBtn") as HTMLButtonElement;
@@ -109,7 +118,7 @@
       const token = generateHash(8);
       const purchase = {
         subscriptionId: String(Math.floor(Math.random() * 1000000)),
-        subscriptionType: "public" as const,
+        subscriptionType: data.type,
         subscriptionStatus: "active" as const,
         subscriptionPeriod: getSubscriptionType(months),
         subscriptionEndDate: addMonths(months).toISOString(),

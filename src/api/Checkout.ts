@@ -7,7 +7,7 @@ class MockCheckout extends HttpClient {
 
   submitPurchase = async (data: {
     subscriptionId: string;
-    subscriptionType: "public";
+    subscriptionType: "public" | "private";
     subscriptionPeriod: "monthly" | "quarterly" | "yearly";
     subscriptionStatus: "active";
     subscriptionEndDate: string;
