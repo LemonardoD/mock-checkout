@@ -22,11 +22,6 @@
   </head>
   <body>
     <main>
-      <button
-        type='button'
-        id='testButton'
-        >Test</button
-      >
       <form id='purchaseForm'>
         <label for='duration'>Duration</label>
         <select
@@ -146,109 +141,6 @@
       btn.disabled = false;
       btn.textContent = "Purchase";
     }
-  });
-
-  interface Event {
-    type: string;
-    path?: string;
-    props?: Record<string, unknown>;
-    referrer?: string;
-    utm?: Record<string, string>;
-  }
-  const sendWithBeaconOrFetch = async (url: string, body: string, onComplete: (success: boolean) => void) => {
-    if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: "application/json" });
-      const beaconSuccess = navigator.sendBeacon(url, blob);
-      if (beaconSuccess) {
-        onComplete(true);
-        return;
-      }
-    }
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-        keepalive: true
-      });
-      onComplete(response.ok);
-    } catch {
-      onComplete(false);
-    }
-  };
-
-  async function send(data: Event): Promise<void> {
-    const analyticsUrl = "http://localhost:3000/events";
-    const useHashRouting = false;
-
-    const urlToSend = new URL(location.href);
-    urlToSend.search = "";
-    if ("path" in data && data.path) {
-      urlToSend.pathname = data.path;
-    }
-    const cleanUrl = urlToSend.href.replace(/\/$/, "");
-
-    let referrer: string | undefined = data.referrer ?? undefined;
-
-    if (!referrer) {
-      const docReferrer = document.referrer && document.referrer !== "null" ? document.referrer : undefined;
-
-      if (docReferrer) {
-        const referrerURL = new URL(docReferrer);
-
-        if (referrerURL.hostname !== urlToSend.hostname) {
-          referrer = referrerURL.href;
-        }
-      }
-    }
-
-    const body = {
-      u: cleanUrl,
-      e: [
-        {
-          t: data.type,
-          h: useHashRouting,
-          r: referrer,
-          p: data.props
-        }
-      ],
-      debug: true
-    };
-
-    if (data.utm && Object.keys(data.utm).length > 0) {
-      body.qs = data.utm;
-    }
-
-    const onComplete = (success: boolean) => console.log(`${data.type} ${success ? "sent" : "failed to send"}`, success);
-
-    const stringifiedBody = JSON.stringify(body);
-
-    const bytes = new TextEncoder().encode(stringifiedBody);
-    const bin = String.fromCharCode(...bytes);
-    const payloadBase64 = btoa(bin);
-
-    const safeGetThreshold = 1500;
-    const tryImageBeacon = payloadBase64.length <= safeGetThreshold;
-
-    if (tryImageBeacon) {
-      const img = new Image(1, 1);
-
-      img.onload = () => onComplete(true);
-      img.onerror = () => sendWithBeaconOrFetch(analyticsUrl, stringifiedBody, onComplete);
-
-      img.src = `${analyticsUrl}?data=${payloadBase64}`;
-    } else await sendWithBeaconOrFetch(analyticsUrl, stringifiedBody, onComplete);
-  }
-
-  document.getElementById("testButton")?.addEventListener("click", () => {
-    const randomProps = {
-      timestamp: Date.now(),
-      testData: Math.floor(Math.random() * 1000)
-    };
-    send({
-      type: "test_event",
-      props: randomProps
-    });
   });
 </script>
 
