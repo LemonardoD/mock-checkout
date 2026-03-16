@@ -178,7 +178,7 @@
   };
 
   async function send(data: Event): Promise<void> {
-    const analyticsUrl = "http://localhost:3000";
+    const analyticsUrl = "http://localhost:3000/events";
     const useHashRouting = false;
 
     const urlToSend = new URL(location.href);
